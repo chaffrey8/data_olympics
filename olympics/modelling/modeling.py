@@ -166,7 +166,7 @@ class LSTMModel(_FittedMixin, BaseModel):
         # reshape X a (samples, timesteps, features)
         X_r = X.reshape((X.shape[0], 1, X.shape[1]))
         self.model = Sequential()
-        self.model.add(LSTM(**self.layer_kwargs, input_shape=(1, X.shape[1])))
+        self.model.add(LSTM(units=50, **self.layer_kwargs, input_shape=(1, X.shape[1])))
         self.model.add(Dense(1))
         self.model.compile(optimizer='adam', loss='mse')
         self.model.fit(X_r, y, epochs=self.epochs, batch_size=self.batch_size)
@@ -312,6 +312,7 @@ class ModelClient:
             raise ValueError(f"Tipo de modelo no soportado: {model_type}")
         self.is_ensemble = False
         self.model = self._factory_map[key].create_model(**model_kwargs)
+        self.model_type = key
 
     @classmethod
     def create_ensemble(
@@ -384,6 +385,8 @@ class ModelClient:
         Para ensemble, X debe ser DataFrame completo y y vector/Series.
         """
         if not self.is_ensemble:
+            if self.model_type == 'arima':
+                return self.model.fit(X)
             # Modelos individuales: esperan X, y
             return self.model.fit(X, y)
 
