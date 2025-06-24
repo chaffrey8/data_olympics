@@ -19,6 +19,7 @@ from statsmodels.tsa.arima.model import ARIMA
 from keras.models import Sequential
 from keras.layers import LSTM, Dense
 import numpy as np
+from sklearn.model_selection import GridSearchCV
 
 # ────────────────────────────────────────────────────────────────────────────#
 #                           1. PRODUCTO ABSTRACTO                             #
@@ -112,7 +113,17 @@ class SVRModel(_FittedMixin, BaseModel):
 class XGBRegressorModel(_FittedMixin, BaseModel):
     def __init__(self, **kwargs):
         super().__init__()
-        self.model = XGBRegressor(**kwargs)
+
+        parameters = {
+            "n_estimators": [100, 200, 500],
+            "max_depth": [3, 5, 10, 15],
+            "learning_rate": [0.01, 0.05, 0.1]
+            }
+        self.model = GridSearchCV(
+            XGBRegressor(**kwargs),
+            parameters
+        )
+       # self.model = XGBRegressor(**kwargs)
 
     def fit(self, X, y):
         self.model.fit(X, y)
